@@ -1,6 +1,9 @@
 import os
 from pathlib import Path
+import environ
 
+env = environ.Env()
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -9,11 +12,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'optional-default-key')
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+SECRET_KEY = env('DJANGO_SECRET_KEY')
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1','ec2-3-17-165-191.us-east-2.compute.amazonaws.com']
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = env.bool('DJANGO_DEBUG', default=False)
+
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'ec2-3-17-165-191.us-east-2.compute.amazonaws.com']
 
 # Application definition
 
@@ -37,7 +41,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.common.CommonMiddleware',
 ]
@@ -45,7 +49,7 @@ MIDDLEWARE = [
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    "http://ishaanbucket.s3-website.us-east-2.amazonaws.com"
+    "http://ishaanbucket-aws.s3-website.us-east-2.amazonaws.com"
 ]
 
 ROOT_URLCONF = 'api.urls'
@@ -72,9 +76,13 @@ WSGI_APPLICATION = 'api.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-      'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'djangonotes',
+        'USER': 'admin',
+        'PASSWORD': 'passwords',
+        'HOST': 'localhost',
+        'PORT': ''
     }
 }
 
@@ -111,12 +119,28 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-AWS_STORAGE_BUCKET_NAME = 'ishaanbucket'
-AWS_S3_REGION_NAME = 'us-east-2'  
+
+AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = 'ishaanbucket-aws'
+AWS_S3_REGION_NAME = 'us-east-2'
+AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
 AWS_S3_OBJECT_PARAMETERS = {
     'CacheControl': 'max-age=86400',
 }
 AWS_LOCATION = 'static'
+
+# Static files settings
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'guestbook_api/static'),
+]
+STATIC_URL = f'http://{AWS_STORAGE_BUCKET_NAME}.s3-website.us-east-2.amazonaws.com/'
+STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
+# Media files settings
+MEDIA_URL = f'http://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
 # Security enhancements
 SECURE_BROWSER_XSS_FILTER = True
@@ -129,11 +153,6 @@ CSRF_COOKIE_SECURE = True
 SECURE_HSTS_SECONDS = 31536000  # 1 year
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'guestbook_api/static'),
-]
-STATIC_URL = f'http://ishaanbucket.s3-website.us-east-2.amazonaws.com/'
-STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
