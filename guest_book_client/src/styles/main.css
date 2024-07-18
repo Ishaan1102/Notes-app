@@ -44,6 +44,7 @@ body {
     align-items: center;
 }
 .centreText{
+    text-align: center;
     font-size: 40px;
     color: white;
 }
