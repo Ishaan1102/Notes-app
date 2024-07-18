@@ -10,9 +10,7 @@ const App = () => {
     const [content, setContent] = useState('');
     const [posts, setPosts] = useState([]);
 
-    const toggleModal = () => {
-        setModelVisible(!modelVisible);
-    };
+
 
     const getAllPosts = async () => {
         const res = await fetch(`http://localhost:8000/posts/`);
