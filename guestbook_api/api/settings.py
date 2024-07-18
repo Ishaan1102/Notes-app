@@ -41,6 +41,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
 ]
 
 CORS_ALLOWED_ORIGINS = [
@@ -129,7 +130,7 @@ AWS_LOCATION = 'static'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'guestbook_api/static'),
 ]
-STATIC_URL = f'http://ishaanbucket-aws.s3-website.us-east-2.amazonaws.com'
+STATIC_URL = f'http://ishaanbucket-aws.s3-website.us-east-2.amazonaws.com/'
 STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
 
